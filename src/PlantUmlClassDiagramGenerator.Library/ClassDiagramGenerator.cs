@@ -20,6 +20,7 @@ namespace PlantUmlClassDiagramGenerator.Library
         private readonly string indent;
         private int nestingDepth = 0;
         private bool _createAssociation;
+        private bool _createNamespace;
 
         private readonly Dictionary<string, string> _escapeDictionary = new Dictionary<string, string>
         {
@@ -27,18 +28,23 @@ namespace PlantUmlClassDiagramGenerator.Library
             {@"(?<before>[^}])}(?<after>[^}])", "${before}&#125;${after}"},
         };
 
-        public ClassDiagramGenerator(TextWriter writer, string indent, Accessibilities ignoreMemberAccessibilities = Accessibilities.None, bool createAssociation = true)
+        public ClassDiagramGenerator(TextWriter writer, string indent, Accessibilities ignoreMemberAccessibilities = Accessibilities.None, bool createAssociation = true, bool createNamespace = false)
         {
             this.writer = writer;
             this.indent = indent;
             _additionalTypeDeclarationNodes = new List<SyntaxNode>();
             _ignoreMemberAccessibilities = ignoreMemberAccessibilities;
             _createAssociation = createAssociation;
+            _createNamespace = createNamespace;
         }
 
         public void Generate(SyntaxNode root)
         {
             WriteLine("@startuml");
+            if (!_createNamespace)
+            {
+                WriteLine("set namespaceSeparator none");
+            }
             GenerateInternal(root);
             WriteLine("@enduml");
         }
@@ -70,11 +76,19 @@ namespace PlantUmlClassDiagramGenerator.Library
             var typeName = TypeNameText.From(node);
             var name = typeName.Identifier;
             var typeParam = typeName.TypeArguments;
+            var displayIdentifier = typeName.DisplayIdentifier;
             var type = $"{name}{typeParam}";
 
             types.Add(name);
 
-            WriteLine($"class {type} <<struct>> {{");
+            if (displayIdentifier == type)
+            {
+                WriteLine($"class {type} <<struct>> {{");
+            }
+            else
+            {
+                WriteLine($"class \"{displayIdentifier}\" as {type} <<struct>> {{");
+            }
 
             nestingDepth++;
             base.VisitStructDeclaration(node);
@@ -89,11 +103,18 @@ namespace PlantUmlClassDiagramGenerator.Library
 
             _relationships.AddInnerclassRelationFrom(node);
 
-            var type = $"{node.Identifier}";
+            var type = node.GetFullName();
 
             types.Add(type);
 
-            WriteLine($"{node.EnumKeyword} {type} {{");
+            if (node.Identifier.Text == type)
+            {
+                WriteLine($"{node.EnumKeyword} {type} {{");
+            }
+            else
+            {
+                WriteLine($"{node.EnumKeyword} \"{node.Identifier}\" as {type} {{");
+            }
 
             nestingDepth++;
             base.VisitEnumDeclaration(node);
@@ -289,11 +310,19 @@ namespace PlantUmlClassDiagramGenerator.Library
             var typeName = TypeNameText.From(node);
             var name = typeName.Identifier;
             var typeParam = typeName.TypeArguments;
+            var displayIdentifier = typeName.DisplayIdentifier;
             var type = $"{name}{typeParam}";
 
             types.Add(name);
 
-            WriteLine($"{keyword} {type} {modifiers}{{");
+            if (type == displayIdentifier)
+            {
+                WriteLine($"{keyword} {type} {modifiers}{{");
+            }
+            else
+            {
+                WriteLine($"{keyword} \"{displayIdentifier}\" as {type} {modifiers}{{");
+            }
 
             nestingDepth++;
             visitBase();

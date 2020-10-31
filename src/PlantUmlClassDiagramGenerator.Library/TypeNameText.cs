@@ -7,10 +7,13 @@ namespace PlantUmlClassDiagramGenerator.Library
         public string Identifier { get; set; }
 
         public string TypeArguments { get; set; }
-        
+
+        public string DisplayIdentifier { get; set; }
+
         public static TypeNameText From(SimpleNameSyntax syntax)
         {
-            var identifier = syntax.Identifier.Text;
+            var identifier = syntax.GetFullName();
+            var displayIdentifier = syntax.Identifier.Text;
             var typeArgs = string.Empty;
             var genericName = syntax as GenericNameSyntax;
             if (genericName != null && genericName.TypeArgumentList != null)
@@ -26,6 +29,7 @@ namespace PlantUmlClassDiagramGenerator.Library
             return new TypeNameText
             {
                 Identifier = identifier,
+                DisplayIdentifier = displayIdentifier,
                 TypeArguments = typeArgs
             };
         }
@@ -48,20 +52,22 @@ namespace PlantUmlClassDiagramGenerator.Library
             }
             return new TypeNameText
             {
-                Identifier = $"\"{syntax.Identifier.Text}`{paramCount}\"",
+                Identifier = syntax.GetFullName(),
+                DisplayIdentifier = $"\"{syntax.Identifier.Text}`{paramCount}\"",
                 TypeArguments = "<" + string.Join(",", parameters) + ">",
             };
         }
 
         public static TypeNameText From(BaseTypeDeclarationSyntax syntax)
         {
-            var identifier = syntax.Identifier.Text;
+            var identifier = syntax.GetFullName();
+            var displayIdentifier = syntax.Identifier.Text;
             var typeArgs = string.Empty;
             var typeDeclaration = syntax as TypeDeclarationSyntax;
             if (typeDeclaration != null && typeDeclaration.TypeParameterList != null)
             {
                 var count = typeDeclaration.TypeParameterList.Parameters.Count;
-                identifier = $"\"{identifier}`{count}\"";
+                displayIdentifier = $"{displayIdentifier}`{count}";
                 typeArgs = "<" + string.Join(",", typeDeclaration.TypeParameterList.Parameters) + ">";
             }
             else if (identifier.StartsWith("@"))
@@ -71,6 +77,7 @@ namespace PlantUmlClassDiagramGenerator.Library
             return new TypeNameText
             {
                 Identifier = identifier,
+                DisplayIdentifier = displayIdentifier,
                 TypeArguments = typeArgs
             };
         }

@@ -14,13 +14,21 @@ namespace PlantUmlClassDiagramGenerator.Library
             if (syntax.BaseList == null) return;
 
             var subTypeName = TypeNameText.From(syntax);
+            if (subTypeName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                subTypeName.Identifier = $"\"{subTypeName.Identifier}\"";
+            }
 
             foreach (var typeStntax in syntax.BaseList.Types)
             {
                 var typeNameSyntax = typeStntax.Type as SimpleNameSyntax;
                 if (typeNameSyntax == null) continue;
                 var baseTypeName = TypeNameText.From(typeNameSyntax);
-                _items.Add(new Relationship(baseTypeName, subTypeName, "<|--", baseTypeName.TypeArguments));             
+                if (baseTypeName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+                {
+                    baseTypeName.Identifier = $"\"{baseTypeName.Identifier}\"";
+                }
+                _items.Add(new Relationship(baseTypeName, subTypeName, "<|--", baseTypeName.TypeArguments));
             }
         }
 
@@ -32,7 +40,15 @@ namespace PlantUmlClassDiagramGenerator.Library
             if (outerTypeNode == null || innerTypeNode == null) return;
 
             var outerTypeName = TypeNameText.From(outerTypeNode);
+            if (outerTypeName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                outerTypeName.Identifier = $"\"{outerTypeName.Identifier}\"";
+            }
             var innerTypeName = TypeNameText.From(innerTypeNode);
+            if (innerTypeName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                innerTypeName.Identifier = $"\"{innerTypeName.Identifier}\"";
+            }
             _items.Add(new Relationship(outerTypeName, innerTypeName, "+--"));
         }
 
@@ -46,7 +62,15 @@ namespace PlantUmlClassDiagramGenerator.Library
             var symbol = field.Initializer == null ? "-->" : "o->";
 
             var baseName = TypeNameText.From(baseNode);
+            if (baseName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                baseName.Identifier = $"\"{baseName.Identifier}\"";
+            }
             var subName = TypeNameText.From(subNode);
+            if (subName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                subName.Identifier = $"\"{subName.Identifier}\"";
+            }
             _items.Add(new Relationship(subName, baseName, symbol, "", field.Identifier.ToString() + baseName.TypeArguments));
         }
 
@@ -60,7 +84,15 @@ namespace PlantUmlClassDiagramGenerator.Library
             var symbol = node.Initializer == null ? "-->" : "o->";
 
             var baseName = TypeNameText.From(baseNode);
+            if (baseName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                baseName.Identifier = $"\"{baseName.Identifier}\"";
+            }
             var subName = TypeNameText.From(subNode);
+            if (subName.Identifier.Contains(CSharpSyntaxNodeExtension.NESTED_CLASS_DELIMITER))
+            {
+                subName.Identifier = $"\"{subName.Identifier}\"";
+            }
             _items.Add(new Relationship(subName, baseName, symbol, "", node.Identifier.ToString() + baseName.TypeArguments));
         }
 
